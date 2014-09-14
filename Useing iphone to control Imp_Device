@@ -1,0 +1,51 @@
+function arduinoData()
+{
+}
+
+arduino <- hardware.uart57;
+arduino.configure(9600, 8, PARITY_NONE, 1, NO_CTSRTS, arduinoData);
+
+agent.on("button1", function(a) {
+    local data = "";
+    if (a == "") {                             //Check if any data was sent with the button press
+        server.log("Button 1 press received."); //Log that the device received the request
+                                               // Do something at the device 
+        data = "Button 1 pressed.";      // This string will be sent back to Pitchfork and displayed
+        arduino.write("a");
+        
+    }
+    //agent.send("button1", data)                // Reply to the agent with the response string.
+});
+
+agent.on("button2", function(a) {
+    local data = "";
+    if (a == "") {                             //Check if any data was sent with the button press
+        server.log("Button 2 press received."); //Log that the device received the request
+                                               // Do something at the device 
+        data = "Button 2 pressed."; // This string will be sent back to Pitchfork and displayed
+        arduino.write("b");
+    }
+    //agent.send("button2", data)                // Reply to the agent with the response string.
+});
+
+agent.on("button3", function(a) {
+    local data = "";
+    if (a == "") {                             //Check if any data was sent with the button press
+        server.log("Button 3 press received."); //Log that the device received the request
+                                               // Do something at the device 
+        data = "Button 3 pressed.";      // This string will be sent back to Pitchfork and displayed
+        arduino.write("c");
+    }
+    //agent.send("button3", data)                // Reply to the agent with the response string.
+});
+
+agent.on("button4", function(a) {
+    local data = "";
+    if (a == "") {                             //Check if any data was sent with the button press
+        server.log("Button 4 press received."); //Log that the device received the request
+                                               // Do something at the device 
+        data = "Button 4 pressed.";      // This string will be sent back to Pitchfork and displayed
+        arduino.write("d");
+    }
+    //agent.send("button3", data)                // Reply to the agent with the response string.
+});
