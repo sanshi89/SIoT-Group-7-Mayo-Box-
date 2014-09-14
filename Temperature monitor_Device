@@ -1,0 +1,58 @@
+led_1 <- hardware.pin9;
+led_1.configure(DIGITAL_OUT);
+state <- 0;
+ 
+function blink() {
+  state = 1-state;  
+  led_1.write(state);
+  imp.wakeup(0.5, blink);
+}
+blink();
+
+//Temp
+
+
+// Based on TempBug Simple Example Device Code
+// 
+  
+/* GLOBALS and CONSTANTS -----------------------------------------------------*/
+const INTERVAL = 100;
+led_2 <- hardware.pin8;
+led_2.configure(DIGITAL_OUT);
+state <- 0;
+/* CLASS AND GLOBAL FUNCTION DEFINITIONS -------------------------------------*/
+
+function getTemp() {
+ // schedule the next temperature reading
+ imp.wakeup(INTERVAL, getTemp);
+ 
+ // hardware id is used to separate feeds on Xively, so provide it with the data
+ local id = hardware.getdeviceid();
+ local data=temperature.read();     // Reading analog output
+ local volt=hardware.voltage();     // Reading ADC ref. voltage
+ local temp = data*volt/65536*100.0-5 // Calc. temp (16bits ADC)
+  
+  if (temp >= 30) 
+    {
+    led_1.write(0);
+    led_2.write(1);  
+    } else{
+        led_2.write(0);
+    }
+    
+ 
+ local datapoint = {
+     "id" : id,
+     "temp" : temp
+ }
+ server.log("Temp: "+datapoint.temp);
+ agent.send("data",datapoint);
+}
+ 
+/* REGISTER AGENT CALLBACKS --------------------------------------------------*/
+ 
+/* RUNTIME BEGINS HERE -------------------------------------------------------*/
+// Configure Pins
+temperature <- hardware.pin1;
+temperature.configure(ANALOG_IN);
+getTemp();
