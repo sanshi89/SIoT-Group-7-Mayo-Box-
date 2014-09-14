@@ -1,0 +1,132 @@
+#include <Ultrasonic.h>
+#define TRIGGER_PIN  12
+#define ECHO_PIN     13
+#include <SoftwareSerial.h>
+SoftwareSerial electricimpSerial(9, 10); // RX, TX
+const int ledPin_1 =  7;
+const int ledPin_2 =  6;
+
+int led_1 = 7;
+int ledState_1 = LOW; 
+int led_2 = 6;
+int ledState_2 = LOW; 
+boolean led1_flashing = false;
+boolean led1_on = false;
+boolean led2_flashing = false;
+
+long previousMillis = 0;
+long interval = 1000;
+
+Ultrasonic ultrasonic(TRIGGER_PIN, ECHO_PIN);
+unsigned long currentMillis = millis();
+
+void setup()
+{
+  Serial.begin(9600);
+  electricimpSerial.begin(9600);
+
+  pinMode(led_1, OUTPUT);  
+  pinMode(led_2, OUTPUT);  
+}
+
+void loop()
+{
+  float cmMsec, inMsec;
+  int tmp;
+  long microsec = ultrasonic.timing();
+  unsigned long currentMillis = millis();
+  int stage = 0;
+
+  if(currentMillis - previousMillis > interval) {
+    previousMillis = currentMillis;   
+
+    cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
+    inMsec = ultrasonic.convert(microsec, Ultrasonic::IN);
+    //Serial.print("MS: ");
+    //Serial.print(microsec);
+    Serial.print("CM: ");
+    Serial.println(cmMsec);
+
+    byte b = 0;
+    while (electricimpSerial.available()){
+
+      b = electricimpSerial.read();
+      Serial.println(b);
+    }
+    if (Serial.available())
+      electricimpSerial.write(Serial.read());
+
+
+
+    // If there's data available
+    if (b != 0) 
+    {    
+      // Read a byte
+      if (b == 97 ) //&& cmMsec < 10
+      {
+        Serial.println("stage:1");
+        stage = 1;
+      } 
+      else if(b == 98)//&& cmMsec < 10
+      {
+        Serial.println("stage:2");
+        stage = 2;
+      }     
+      else if(b == 99) {
+        Serial.println("stage:3");
+        stage = 3;
+      }
+      else if(b == 100) {
+        Serial.println("stage:4");
+        stage = 4;
+      }
+    }
+
+    switch (stage) {
+    case 1:
+      //digitalWrite(ledPin_1, LOW);
+      led2_flashing = false;
+      led1_flashing = true;
+      break;
+    case 2:
+      led1_flashing = false;
+      led1_on = true;
+      break;
+    case 3:
+      led1_on = false;
+      led1_flashing = false;
+      led2_flashing = true;
+      break; 
+    case 4:
+      led1_on = false;
+      led1_flashing = false;
+      led2_flashing = false;
+      break; 
+      //    default:
+    }
+    flash_leds_if_possible();
+  }
+}
+
+void flash_leds_if_possible() {
+  if (led1_flashing) {
+    ledState_1 = (ledState_1 == LOW)? HIGH : LOW;    
+    digitalWrite(ledPin_1, ledState_1);
+  } 
+  else {
+    digitalWrite(ledPin_1, LOW);
+  }
+  if (led2_flashing) {
+    ledState_2 = (ledState_2 == LOW)? HIGH : LOW;    
+    digitalWrite(ledPin_2, ledState_2);
+  } 
+  else {
+    digitalWrite(ledPin_2, LOW);
+    if (led1_on) {
+      ledState_1 = (ledState_1 == LOW)? HIGH : LOW;    
+      digitalWrite(ledPin_1, HIGH);
+    } 
+    //  else {
+    //    digitalWrite(ledPin_2, LOW);
+  }
+}
